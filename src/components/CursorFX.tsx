@@ -50,8 +50,8 @@ export const CursorFX: React.FC = () => {
       }
       if (magnet) {
         const r = magnet.getBoundingClientRect();
-        const dx = (x - (r.left + r.width / 2)) * 0.22;
-        const dy = (y - (r.top + r.height / 2)) * 0.3;
+        const dx = (x - (r.left + r.width / 2)) * 0.12;
+        const dy = (y - (r.top + r.height / 2)) * 0.16;
         magnet.style.translate = `${dx.toFixed(1)}px ${dy.toFixed(1)}px`;
         ring.dataset.hover = 'true';
       }

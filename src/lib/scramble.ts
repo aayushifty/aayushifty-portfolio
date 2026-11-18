@@ -6,7 +6,7 @@ const originals = new WeakMap<Node, string>();
  * Decode effect: each character flickers through glyphs and settles left to right.
  * Works on the element's own text nodes, so React keeps the nodes it rendered.
  */
-export function scramble(el: Element, duration = 620): void {
+export function scramble(el: Element, duration = 450): void {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
   const nodes: Text[] = [];

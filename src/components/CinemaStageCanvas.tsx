@@ -267,8 +267,8 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
       rootStyle.setProperty('--room-accent', ROOM_ACCENTS[state.activeClip] ?? ROOM_ACCENTS[0]);
       rootStyle.setProperty('--cut', Math.max(0, 1 - Math.min(Math.abs(t - 10), Math.abs(t - 20)) / 0.3).toFixed(3));
       // act title cards: a shutter that opens toward each room cut and closes after it
-      rootStyle.setProperty('--card1', Math.max(0, 1 - Math.abs(t - 10) / 0.8).toFixed(3));
-      rootStyle.setProperty('--card2', Math.max(0, 1 - Math.abs(t - 20) / 0.8).toFixed(3));
+      rootStyle.setProperty('--card1', Math.max(0, 1 - Math.abs(t - 10) / 0.55).toFixed(3));
+      rootStyle.setProperty('--card2', Math.max(0, 1 - Math.abs(t - 20) / 0.55).toFixed(3));
       if (state.activeClip !== lastActRef.current) {
         lastActRef.current = state.activeClip;
         onActChangeRef.current(state.activeClip);
