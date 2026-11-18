@@ -1211,3 +1211,174 @@ html {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--room-accent) 50%, transparent) #06080d;
 }
+
+/* ── Room-cut title cards ─────────────────────────────────────────────────────────────────────
+   --card1 / --card2 rise to 1 on the cuts at 10s and 20s of reel: letterbox bars close in, a
+   slit of light opens across the frame and the next act's title is struck through it. */
+.reel-letterbox {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.reel-letterbox::before,
+.reel-letterbox::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  height: 11vh;
+  background: #000;
+  scale: 1 max(var(--card1, 0), var(--card2, 0));
+}
+
+.reel-letterbox::before {
+  top: 0;
+  transform-origin: 50% 0;
+}
+
+.reel-letterbox::after {
+  bottom: 0;
+  transform-origin: 50% 100%;
+}
+
+.reel-actcard {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.6rem;
+  pointer-events: none;
+  opacity: min(1, calc(var(--k, 0) * 2.4));
+  clip-path: inset(calc((1 - min(1, var(--k, 0) * 1.6)) * 50%) 0);
+}
+
+.reel-actcard::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--room-accent), #fff, var(--room-accent), transparent);
+  box-shadow: 0 0 28px 6px color-mix(in srgb, var(--room-accent) 60%, transparent);
+  scale: var(--k, 0) 1;
+}
+
+.reel-actcard-num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(5rem, 19vw, 16rem);
+  line-height: 0.8;
+  letter-spacing: calc((1 - var(--k, 0)) * 0.45em - 0.02em);
+  color: transparent;
+  -webkit-text-stroke: 2px rgb(255 255 255 / 0.92);
+  text-shadow:
+    calc((1 - var(--k, 0)) * 18px) 0 0 rgb(255 45 95 / calc((1 - var(--k, 0)) * 0.9)),
+    calc((var(--k, 0) - 1) * 18px) 0 0 rgb(45 220 255 / calc((1 - var(--k, 0)) * 0.9));
+  scale: calc(1.2 - var(--k, 0) * 0.2);
+}
+
+.reel-actcard-label {
+  font-family: var(--font-kicker);
+  font-size: clamp(0.7rem, 0.55rem + 0.5vw, 1rem);
+  font-weight: 600;
+  letter-spacing: 0.55em;
+  text-transform: uppercase;
+  color: var(--room-accent);
+  text-shadow: 0 2px 14px rgb(0 0 0 / 0.9);
+}
+
+/* ── Scroll speed: headings shear and split into RGB while the reel is moving ──────────────── */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .gs-beat .cinema-display-title {
+    transform: skewY(calc(var(--vel, 0) * -2.2deg));
+    text-shadow:
+      calc(var(--vel, 0) * 9px) 0 0 rgb(255 50 100 / 0.55),
+      calc(var(--vel, 0) * -9px) 0 0 rgb(50 220 255 / 0.55),
+      0 2px 12px rgb(0 0 0 / 0.92),
+      0 8px 28px rgb(0 0 0 / 0.78),
+      0 18px 54px rgb(0 0 0 / 0.65);
+  }
+}
+
+/* ── Hero: the name rises in letter by letter as the curtain lifts ─────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .gs-char {
+    display: inline-block;
+    animation: gs-char-in 1.05s var(--ease-expo-out) both;
+    animation-delay: calc(0.3s + var(--i, 0) * 0.045s);
+  }
+
+  @keyframes gs-char-in {
+    from {
+      opacity: 0;
+      translate: 0 0.6em;
+      rotate: 12deg;
+      filter: blur(10px);
+    }
+  }
+}
+
+/* ── Cursor (desktop): exact dot, trailing ring that swells over anything clickable ───────── */
+.cursor-fx {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  pointer-events: none;
+  display: none;
+  border-radius: 50%;
+}
+
+:root[data-cursor='fx'] .cursor-fx {
+  display: block;
+}
+
+:root:has(dialog[open]) .cursor-fx {
+  display: none !important;
+}
+
+:root[data-cursor='fx']:not(:has(dialog[open])),
+:root[data-cursor='fx']:not(:has(dialog[open])) :is(a, button) {
+  cursor: none;
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: #fff;
+  mix-blend-mode: difference;
+}
+
+.cursor-ring {
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border: 1px solid color-mix(in srgb, var(--room-accent) 75%, #fff);
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    scale 0.4s var(--ease-spring),
+    background-color 0.3s ease;
+}
+
+.cursor-ring[data-on='true'] {
+  opacity: 0.85;
+}
+
+.cursor-ring[data-hover='true'] {
+  scale: 1.9;
+  background-color: color-mix(in srgb, var(--room-accent) 16%, transparent);
+}
+
+.cursor-ring[data-down='true'] {
+  scale: 0.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel-actcard,
+  .reel-letterbox {
+    display: none;
+  }
+}

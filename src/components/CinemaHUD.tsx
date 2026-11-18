@@ -2,6 +2,7 @@ import React from 'react';
 import { CINEMA_CLIPS } from '@/data/portfolio';
 import { NAV_SCROLL_TARGETS } from '@/lib/scrollBeats';
 import { cn } from '@/lib/utils';
+import { scramble } from '@/lib/scramble';
 
 export interface CinemaHUDProps {
   activeAct: 0 | 1 | 2;
@@ -61,6 +62,7 @@ export const CinemaHUD: React.FC<CinemaHUDProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => onNavigateSection(item.id)}
+                onMouseEnter={(e) => scramble(e.currentTarget, 420)}
                 className={cn(
                   'hidden min-h-9 font-sans text-xs tracking-wide transition md:inline-flex md:items-center [text-shadow:0_2px_10px_rgb(0_0_0/0.85)]',
                   isHighlighted
@@ -76,6 +78,7 @@ export const CinemaHUD: React.FC<CinemaHUDProps> = ({
           <button
             type="button"
             onClick={() => onNavigateSection('section-contact')}
+            onMouseEnter={(e) => scramble(e.currentTarget, 420)}
             className="cinema-link-action min-h-9 font-sans text-xs font-bold tracking-wide text-[color:var(--room-accent)] hover:text-white"
           >
             Contact

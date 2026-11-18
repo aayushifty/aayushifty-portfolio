@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpRight, Check, Copy } from 'lucide-react';
 import {
   BEYOND_PILLARS,
@@ -11,6 +11,7 @@ import {
   type ProjectItem,
 } from '@/data/portfolio';
 import { beatDataAttrs, span, type Gesture } from '@/lib/scrollBeats';
+import { watchBeatScramble } from '@/lib/scramble';
 
 export interface GestureStageProps {
   onSelectProject: (item: ProjectItem) => void;
@@ -74,20 +75,37 @@ const Beat: React.FC<BeatProps> = ({ t0, t1, fx, gesture, place, holdStart, hold
   );
 };
 
-/** Headline with the accented part wrapped in pipes, e.g. "Beyond the |screen|". */
-const Title: React.FC<{ text: string }> = ({ text }) => (
-  <>
-    {text.split('|').map((segment, s) =>
-      s % 2 ? (
-        <strong key={s} className="gs-accent">
-          {segment}
-        </strong>
-      ) : (
-        <React.Fragment key={s}>{segment}</React.Fragment>
-      )
-    )}
-  </>
-);
+/** Headline with the accented part wrapped in pipes, e.g. "Beyond the |screen|".
+ *  `split` sets each letter in its own span so the hero can rise in letter by letter. */
+const Title: React.FC<{ text: string; split?: boolean }> = ({ text, split }) => {
+  let n = 0;
+  const letters = (segment: string): React.ReactNode =>
+    split
+      ? [...segment].map((ch, i) =>
+          ch === ' ' ? (
+            ' '
+          ) : (
+            <span key={i} className="gs-char" aria-hidden="true" style={{ '--i': n++ } as React.CSSProperties}>
+              {ch}
+            </span>
+          )
+        )
+      : segment;
+  return (
+    <>
+      {split && <span className="visually-hidden">{text.replace(/\|/g, '')}</span>}
+      {text.split('|').map((segment, s) =>
+        s % 2 ? (
+          <strong key={s} className="gs-accent">
+            {letters(segment)}
+          </strong>
+        ) : (
+          <React.Fragment key={s}>{letters(segment)}</React.Fragment>
+        )
+      )}
+    </>
+  );
+};
 
 interface Tip {
   /** fingertip track in lib/fingertips.ts */
@@ -179,6 +197,11 @@ export const GestureStage: React.FC<GestureStageProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    const stage = document.getElementById('cinema-stage-beats');
+    return stage ? watchBeatScramble(stage) : undefined;
+  }, []);
+
   const copyEmail = (): void => {
     void navigator.clipboard?.writeText(PROFILE.email).then(() => {
       setCopied(true);
@@ -231,7 +254,7 @@ export const GestureStage: React.FC<GestureStageProps> = ({
       <Beat id="act-studio" t0={0} fx="fade" t1={1.75} gesture="wave" place={{ kind: 'low' }} holdStart>
         <p className="cinema-kicker">{PROFILE.location}</p>
         <h1 className="cinema-display-title cinema-hero-title mt-2">
-          <Title text="Hi, I’m |Aayush.|" />
+          <Title text="Hi, I’m |Aayush.|" split />
         </h1>
         <p className="cinema-subtitle mx-auto mt-3 text-sm sm:text-base">
           I build software that sees, listens and gets things done.

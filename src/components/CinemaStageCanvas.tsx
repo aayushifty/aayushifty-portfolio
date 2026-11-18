@@ -5,6 +5,7 @@ import {
   pickUpgradeUrl,
 } from '@/lib/frameScrubEngine';
 import { restTime } from '@/lib/restFrames';
+import { CINEMA_CLIPS } from '@/data/portfolio';
 import { applyFingertips } from '@/lib/fingertips';
 import {
   applyBeatVisuals,
@@ -265,6 +266,9 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
       const rootStyle = document.documentElement.style;
       rootStyle.setProperty('--room-accent', ROOM_ACCENTS[state.activeClip] ?? ROOM_ACCENTS[0]);
       rootStyle.setProperty('--cut', Math.max(0, 1 - Math.min(Math.abs(t - 10), Math.abs(t - 20)) / 0.3).toFixed(3));
+      // act title cards: a shutter that opens toward each room cut and closes after it
+      rootStyle.setProperty('--card1', Math.max(0, 1 - Math.abs(t - 10) / 0.8).toFixed(3));
+      rootStyle.setProperty('--card2', Math.max(0, 1 - Math.abs(t - 20) / 0.8).toFixed(3));
       if (state.activeClip !== lastActRef.current) {
         lastActRef.current = state.activeClip;
         onActChangeRef.current(state.activeClip);
@@ -561,6 +565,18 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
 
       <div className="reel-pointer-light" />
       <div className="reel-cut" />
+      <div className="reel-letterbox" aria-hidden="true" />
+      {CINEMA_CLIPS.slice(1).map((clip, i) => (
+        <div
+          key={clip.id}
+          className="reel-actcard"
+          style={{ '--k': `var(--card${i + 1}, 0)` } as React.CSSProperties}
+          aria-hidden="true"
+        >
+          <span className="reel-actcard-num">{clip.actRoman}</span>
+          <span className="reel-actcard-label">{clip.label}</span>
+        </div>
+      ))}
       <div className="cinema-grain absolute inset-0 opacity-[0.02]" />
     </div>
   );

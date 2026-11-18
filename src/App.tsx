@@ -6,6 +6,7 @@ import { CinemaStageCanvas } from '@/components/CinemaStageCanvas';
 import { CinemaHUD } from '@/components/CinemaHUD';
 import { GestureStage } from '@/components/GestureStage';
 import { DossierDialog, DossierSelection } from '@/components/DossierDialog';
+import { CursorFX } from '@/components/CursorFX';
 
 export default function App(): React.ReactElement {
   const [activeAct, setActiveAct] = useState<0 | 1 | 2>(0);
@@ -48,8 +49,18 @@ export default function App(): React.ReactElement {
     lenisRef.current = lenis;
 
     let rafId = 0;
+    // scroll speed, eased, as --vel (-1..1): headings shear and split RGB while the reel moves
+    let vel = 0;
+    let velKey = '0';
+    const rootStyle = document.documentElement.style;
     const raf = (time: number): void => {
       lenis.raf(time);
+      vel += (Math.max(-1, Math.min(1, lenis.velocity / 45)) - vel) * 0.16;
+      const key = Math.abs(vel) < 0.01 ? '0' : vel.toFixed(2);
+      if (key !== velKey) {
+        velKey = key;
+        rootStyle.setProperty('--vel', key);
+      }
       rafId = window.requestAnimationFrame(raf);
     };
     rafId = window.requestAnimationFrame(raf);
@@ -178,6 +189,8 @@ export default function App(): React.ReactElement {
         onActChange={setActiveAct}
         onScrollProgress={handleScrollProgress}
       />
+
+      <CursorFX />
 
       <CinemaHUD
         activeAct={activeAct}
