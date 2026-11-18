@@ -1060,10 +1060,16 @@ dialog.dossier-dialog {
   opacity: var(--beat-a, 1);
 }
 
-/* Focus pull: comes into focus where it stands */
-.gs-beat[data-fx='focus'] [data-beat-stage] {
+/* Rise: settles up into place, always pin-sharp (opacity + transform only) */
+.gs-beat:is([data-fx='focus'], [data-fx='dots']) [data-beat-stage] {
   opacity: var(--beat-a, 1);
-  filter: blur(calc((1 - var(--beat-a, 1)) * 16px));
+  translate: 0 calc((1 - var(--beat-a, 1)) * 14px);
+  scale: calc(0.975 + var(--beat-a, 1) * 0.025);
+}
+
+/* only the block on screen gets its own GPU layer */
+[data-beat-phase='active'] [data-beat-stage] {
+  will-change: opacity, translate, scale;
 }
 
 /* Wipe: revealed across the block, starting from the side nearest the finger */
@@ -1078,19 +1084,6 @@ dialog.dossier-dialog {
   --wipe-dir: 270deg;
 }
 
-/* Dots: fine dots swell until they merge into solid type */
-.gs-beat[data-fx='dots'] [data-beat-stage] {
-  --dot: var(--beat-a, 1);
-  --dots:
-    radial-gradient(circle, #000 calc(var(--dot) * 3.8px), transparent calc(var(--dot) * 3.8px + 0.6px)),
-    radial-gradient(circle, #000 calc(var(--dot) * 6px), transparent calc(var(--dot) * 6px + 0.6px));
-  -webkit-mask-image: var(--dots);
-  mask-image: var(--dots);
-  -webkit-mask-size: 5px 5px, 8px 8px;
-  mask-size: 5px 5px, 8px 8px;
-  -webkit-mask-position: 0 0, 2px 3px;
-  mask-position: 0 0, 2px 3px;
-}
 
 /* Whatever the entrance, a fingertip block leaves the same way: erased from the top down by
    --drop, the fraction of its fall the hand has completed in the frame on screen. */
@@ -1228,7 +1221,8 @@ html {
   inset-inline: 0;
   height: 6.5vh;
   background: #000;
-  scale: 1 max(var(--card1, 0), var(--card2, 0));
+  scale: 1 var(--k, 0);
+  will-change: scale;
 }
 
 .reel-letterbox::before {
@@ -1250,7 +1244,7 @@ html {
   gap: 0.5rem;
   pointer-events: none;
   opacity: min(1, calc(var(--k, 0) * 2));
-  clip-path: inset(calc((1 - min(1, var(--k, 0) * 1.6)) * 50%) 0);
+  will-change: opacity;
 }
 
 .reel-actcard::before {
@@ -1269,10 +1263,11 @@ html {
   font-weight: 800;
   font-size: clamp(3.5rem, 11vw, 9rem);
   line-height: 0.8;
-  letter-spacing: calc((1 - var(--k, 0)) * 0.25em + 0.02em);
+  letter-spacing: 0.04em;
   color: transparent;
   -webkit-text-stroke: 1.25px rgb(255 255 255 / 0.85);
   scale: calc(1.06 - var(--k, 0) * 0.06);
+  will-change: scale;
 }
 
 .reel-actcard-label {
@@ -1283,18 +1278,6 @@ html {
   text-transform: uppercase;
   color: var(--room-accent);
   text-shadow: 0 2px 14px rgb(0 0 0 / 0.9);
-}
-
-/* ── Scroll speed: headings shear and split into RGB while the reel is moving ──────────────── */
-@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
-  .gs-beat .cinema-display-title {
-    text-shadow:
-      calc(var(--vel, 0) * 3px) 0 0 rgb(255 50 100 / 0.4),
-      calc(var(--vel, 0) * -3px) 0 0 rgb(50 220 255 / 0.4),
-      0 2px 12px rgb(0 0 0 / 0.92),
-      0 8px 28px rgb(0 0 0 / 0.78),
-      0 18px 54px rgb(0 0 0 / 0.65);
-  }
 }
 
 /* ── Hero: the name rises in letter by letter as the curtain lifts ─────────────────────────── */
@@ -1309,7 +1292,6 @@ html {
     from {
       opacity: 0;
       translate: 0 0.35em;
-      filter: blur(6px);
     }
   }
 }

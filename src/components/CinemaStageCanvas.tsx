@@ -74,7 +74,7 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
 
     const upgradeReel = async (): Promise<void> => {
       const hiUrl = pickUpgradeUrl();
-      if (!hiUrl) {
+      if (!hiUrl || hiUrl === pickReelUrl()) {
         settle();
         return;
       }
@@ -251,6 +251,16 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
     let shownTime = -1;
     let frameCallbackId = 0;
 
+    const actCards = Array.from(document.querySelectorAll<HTMLElement>('.reel-actcard'));
+    const letterbox = document.querySelector<HTMLElement>('.reel-letterbox');
+    const cutWash = document.querySelector<HTMLElement>('.reel-cut');
+    const setVar = (el: HTMLElement | null | undefined, name: string, k: number): void => {
+      if (!el) return;
+      const v = k.toFixed(3);
+      if (el.style.getPropertyValue(name) !== v) el.style.setProperty(name, v);
+    };
+    const setK = (el: HTMLElement | null | undefined, k: number): void => setVar(el, '--k', k);
+
     const paintOverlays = (): void => {
       const target = desiredTimeRef.current;
       // Lock text to the rendered video frame during active scrubbing, but never freeze
@@ -264,11 +274,16 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
       applyFingertips(t);
       // stage light: tinted by the room on screen, blooming for a few frames as one room cuts to the next
       const rootStyle = document.documentElement.style;
-      rootStyle.setProperty('--room-accent', ROOM_ACCENTS[state.activeClip] ?? ROOM_ACCENTS[0]);
-      rootStyle.setProperty('--cut', Math.max(0, 1 - Math.min(Math.abs(t - 10), Math.abs(t - 20)) / 0.3).toFixed(3));
-      // act title cards: a shutter that opens toward each room cut and closes after it
-      rootStyle.setProperty('--card1', Math.max(0, 1 - Math.abs(t - 10) / 0.55).toFixed(3));
-      rootStyle.setProperty('--card2', Math.max(0, 1 - Math.abs(t - 20) / 0.55).toFixed(3));
+      const accent = ROOM_ACCENTS[state.activeClip] ?? ROOM_ACCENTS[0];
+      if (rootStyle.getPropertyValue('--room-accent') !== accent) rootStyle.setProperty('--room-accent', accent);
+      setVar(cutWash, '--cut', Math.max(0, 1 - Math.min(Math.abs(t - 10), Math.abs(t - 20)) / 0.3));
+      // act title cards peak on each room cut; written on the card nodes only (not :root) and
+      // only when the value changes, so the rest of the page is never restyled by them
+      const c1 = Math.max(0, 1 - Math.abs(t - 10) / 0.55);
+      const c2 = Math.max(0, 1 - Math.abs(t - 20) / 0.55);
+      setK(actCards[0], c1);
+      setK(actCards[1], c2);
+      setK(letterbox, Math.max(c1, c2));
       if (state.activeClip !== lastActRef.current) {
         lastActRef.current = state.activeClip;
         onActChangeRef.current(state.activeClip);
@@ -566,11 +581,10 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
       <div className="reel-pointer-light" />
       <div className="reel-cut" />
       <div className="reel-letterbox" aria-hidden="true" />
-      {CINEMA_CLIPS.slice(1).map((clip, i) => (
+      {CINEMA_CLIPS.slice(1).map((clip) => (
         <div
           key={clip.id}
           className="reel-actcard"
-          style={{ '--k': `var(--card${i + 1}, 0)` } as React.CSSProperties}
           aria-hidden="true"
         >
           <span className="reel-actcard-num">{clip.actRoman}</span>

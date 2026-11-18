@@ -79,7 +79,15 @@
 
     <!-- The start reel: the app streams it, then swaps in the sharpest reel the device can hold -->
     <script>
-      window.__reel = { url: '/video/aayush-reel-720.mp4?v=20261112s8' };
+      // Everyone opens on a full-1080p start reel (6.5 MB, animation-tuned), so the picture is
+      // sharp from the first frame; only data-saver / 2G get the 720p copy. Upgraded in the background.
+      (function () {
+        var c = navigator.connection || {};
+        var slow = c.saveData || /2g$/.test(c.effectiveType || '');
+        window.__reel = {
+          url: slow ? '/video/aayush-reel-720.mp4?v=20261112s8' : '/video/aayush-reel-start.mp4?v=20261118s1',
+        };
+      })();
     </script>
 
     <!-- Preload opening hero frame for instant LCP -->

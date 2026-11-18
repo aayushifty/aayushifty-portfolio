@@ -17,8 +17,8 @@ declare global {
   }
 }
 
-/** The start reel: 720p, under 4 MB, so the whole film is playable within seconds of opening. */
-export const pickReelUrl = (): string => window.__reel?.url ?? '/video/aayush-reel-720.mp4?v=20261112s8';
+/** The start reel: 1080p at 6.5 MB (720p on data-saver/2G), chosen by the inline script in index.html. */
+export const pickReelUrl = (): string => window.__reel?.url ?? '/video/aayush-reel-start.mp4?v=20261118s1';
 
 /**
  * The sharpest reel this screen can actually show, fetched after the light one and swapped in.
