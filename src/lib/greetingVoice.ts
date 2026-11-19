@@ -9,7 +9,7 @@
  *
  * Browsers only allow sound after one tap, click or key press; scrolling alone never counts.
  */
-const SRC = '/audio/greeting.m4a?v=20261119s2';
+const SRC = '/audio/greeting.m4a?v=20261119s3';
 const KEY = 'aayush-greeting-heard';
 const AUDIO_END = 4.69;
 
