@@ -36,7 +36,13 @@ export function pickUpgradeUrl(): string | null {
   // Phones take the 1080p copy: many cannot hardware-decode 2560x1440, and it is a third of the
   // download on mobile data. screen.* is the physical display, unaffected by layout or resizing.
   const phone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 768;
-  return lowMemory || phone ? '/video/aayush-reel-1080.mp4?v=20261112s8' : '/video/aayush-reel.mp4?v=20261112s8';
+  // The 2K master only where the screen has the pixels to show it: on a 1080p panel it looks the
+  // same as 1080p but costs ~1.8x the decoding, which is what made weaker laptops stutter.
+  const physicalWidth = Math.max(screen.width, screen.height) * (window.devicePixelRatio || 1);
+  const sharpScreen = physicalWidth > 2100;
+  return lowMemory || phone || !sharpScreen
+    ? '/video/aayush-reel-1080.mp4?v=20261112s8'
+    : '/video/aayush-reel.mp4?v=20261112s8';
 }
 
 export const HERO_POSTER_URL = '/frames/clip1/001.webp?v=20261112s4';

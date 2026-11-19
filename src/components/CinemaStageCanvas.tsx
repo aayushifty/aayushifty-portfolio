@@ -59,6 +59,13 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
     let seekStartedAt = 0;
     let hasFirstFrame = false;
     const abortCtrl = new AbortController();
+    // last scroll, so the sharp reel is swapped in only while the visitor is resting on a frame
+    let lastScrollAt = performance.now();
+    const waitForRest = async (): Promise<void> => {
+      while (!abortCtrl.signal.aborted && performance.now() - lastScrollAt < 1200) {
+        await new Promise((r) => window.setTimeout(r, 250));
+      }
+    };
 
     video.defaultMuted = true;
     video.muted = true;
@@ -88,6 +95,8 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
         // Read the whole file so it sits in the HTTP cache, then play it from its own URL. Safari is
         // unreliable with blob: video, and a phone need not hold a second 12-25 MB copy in memory.
         await res.arrayBuffer();
+        // swapping reloads the element; doing it mid-scroll held the picture still for a moment
+        await waitForRest();
         if (abortCtrl.signal.aborted) return;
         const latch = latchRef.current;
         if (latch && video.videoWidth) {
@@ -340,6 +349,7 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
     };
 
     const scheduleSync = (): void => {
+      lastScrollAt = performance.now();
       measureMaxScroll();
       if (rafId === null) {
         rafId = window.requestAnimationFrame(() => {
