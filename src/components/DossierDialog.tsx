@@ -12,6 +12,17 @@ export interface DossierDialogProps {
   onClose: () => void;
 }
 
+let lastPointer: { x: number; y: number; t: number } | null = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener(
+    'pointerdown',
+    (e) => {
+      lastPointer = { x: e.clientX, y: e.clientY, t: performance.now() };
+    },
+    { passive: true, capture: true }
+  );
+}
+
 export const DossierDialog: React.FC<DossierDialogProps> = ({ selection, onClose }) => {
   const dialogRef = useRef<HTMLDialogElement | null>(null);
 
@@ -22,6 +33,14 @@ export const DossierDialog: React.FC<DossierDialogProps> = ({ selection, onClose
     if (selection) {
       if (!dialog.open) {
         dialog.showModal();
+        // grow out of the link that opened it; keyboard opens grow from the centre
+        const p = lastPointer;
+        if (p && performance.now() - p.t < 1000) {
+          const r = dialog.getBoundingClientRect();
+          dialog.style.transformOrigin = `${(p.x - r.left).toFixed(0)}px ${(p.y - r.top).toFixed(0)}px`;
+        } else {
+          dialog.style.transformOrigin = '';
+        }
       }
     } else if (dialog.open) {
       dialog.close();

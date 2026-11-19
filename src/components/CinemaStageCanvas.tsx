@@ -253,6 +253,7 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
 
     const actCards = Array.from(document.querySelectorAll<HTMLElement>('.reel-actcard'));
     const letterbox = document.querySelector<HTMLElement>('.reel-letterbox');
+    const frame = document.querySelector<HTMLElement>('.reel-frame');
     const cutWash = document.querySelector<HTMLElement>('.reel-cut');
     const setVar = (el: HTMLElement | null | undefined, name: string, k: number): void => {
       if (!el) return;
@@ -284,6 +285,8 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
       setK(actCards[0], c1);
       setK(actCards[1], c2);
       setK(letterbox, Math.max(c1, c2));
+      // the camera pushes in a touch through each cut (compositor-only scale on the video layer)
+      setVar(frame, '--push', Math.max(c1, c2) ** 2);
       if (state.activeClip !== lastActRef.current) {
         lastActRef.current = state.activeClip;
         onActChangeRef.current(state.activeClip);
@@ -547,7 +550,7 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
       />
 
       <div
-        className="absolute inset-0 h-full w-full origin-[50%_24%]"
+        className="reel-frame absolute inset-0 h-full w-full origin-[50%_24%]"
       >
         <video
           ref={videoRef}
