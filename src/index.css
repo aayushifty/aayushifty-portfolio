@@ -750,6 +750,21 @@ dialog.dossier-dialog {
   display: none;
   align-items: center;
   gap: 0.4rem;
+  min-block-size: 2.5rem;
+  padding-inline: 0.25rem;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.gs-cue-ready:hover,
+.gs-cue-ready:focus-visible {
+  color: var(--room-accent);
 }
 
 :root[data-reel-ready] .gs-cue-loading {

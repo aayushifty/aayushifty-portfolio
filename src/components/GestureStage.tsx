@@ -17,6 +17,8 @@ export interface GestureStageProps {
   onSelectProject: (item: ProjectItem) => void;
   onSelectCredential: (item: CredentialItem) => void;
   onBackToTop: () => void;
+  /** the 'tap or scroll to begin' cue: turns sound on and rolls the film into the greeting */
+  onBegin: () => void;
 }
 
 /**
@@ -194,6 +196,7 @@ export const GestureStage: React.FC<GestureStageProps> = ({
   onSelectProject,
   onSelectCredential,
   onBackToTop,
+  onBegin,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -261,9 +264,9 @@ export const GestureStage: React.FC<GestureStageProps> = ({
         </p>
         <p className="gs-cue mt-5" aria-live="polite">
           <span className="gs-cue-loading">Loading the reel…</span>
-          <span className="gs-cue-ready">
-            Scroll to begin <ArrowDown size={13} aria-hidden="true" />
-          </span>
+          <button type="button" className="gs-cue-ready" onClick={onBegin}>
+            Tap or scroll to begin <ArrowDown size={13} aria-hidden="true" />
+          </button>
         </p>
       </Beat>
 

@@ -7,6 +7,7 @@ import {
 import { restTime } from '@/lib/restFrames';
 import { CINEMA_CLIPS } from '@/data/portfolio';
 import { applyFingertips } from '@/lib/fingertips';
+import { greetingTick } from '@/lib/greetingVoice';
 import {
   applyBeatVisuals,
   resolveUnifiedTimeline,
@@ -273,6 +274,7 @@ export const CinemaStageCanvas: React.FC<CinemaStageCanvasProps> = ({
       const state = resolveUnifiedTimeline(t / getDuration(), 1);
       applyBeatVisuals(state, reducedMotionRef.current);
       applyFingertips(t);
+      greetingTick(t);
       // stage light: tinted by the room on screen, blooming for a few frames as one room cuts to the next
       const rootStyle = document.documentElement.style;
       const accent = ROOM_ACCENTS[state.activeClip] ?? ROOM_ACCENTS[0];

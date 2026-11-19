@@ -159,6 +159,15 @@ export default function App(): React.ReactElement {
     [reducedMotion]
   );
 
+  // Tap on the opening cue: the tap itself unlocks sound, then the film rolls gently into the
+  // greeting so the voice and the wave start together.
+  const handleBegin = useCallback(() => {
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const targetY = Math.round((2.7 / VIDEO_DURATION_SECONDS) * maxScroll);
+    if (lenisRef.current) lenisRef.current.scrollTo(targetY, { duration: 2.6, easing: (t) => 1 - Math.pow(1 - t, 3) });
+    else window.scrollTo({ top: targetY, behavior: 'smooth' });
+  }, []);
+
   const handleSelectProject = useCallback((item: ProjectItem) => {
     setDossierSelection({ kind: 'project', item });
   }, []);
@@ -204,6 +213,7 @@ export default function App(): React.ReactElement {
             onSelectProject={handleSelectProject}
             onSelectCredential={handleSelectCredential}
             onBackToTop={() => handleNavigateSection('act-studio')}
+            onBegin={handleBegin}
           />
         </div>
       </main>
