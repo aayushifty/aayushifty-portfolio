@@ -22,8 +22,15 @@ const KNOTS: ReadonlyArray<readonly [number, number]> = [
   [1.95, 1.78], //      the turn: "Aayush Bhatta · @aayushifty" appears
   [4.6, AUDIO_END], //  "and I go online with the username aayushifty"
 ];
-/** jumped well past the greeting while it was still talking: fade it out for good */
-const CUT_OFF = 6.5;
+/** jumped far past the greeting (e.g. nav to Work) while it was still talking: fade it out */
+const CUT_OFF = 10;
+/** the silences between phrases in the recording: the only places the voice ever pauses */
+const GAPS: ReadonlyArray<readonly [number, number]> = [
+  [0.65, 1.08],
+  [1.62, 1.78],
+  [3.62, 3.89],
+];
+const inGap = (a: number): boolean => GAPS.some(([g0, g1]) => a >= g0 && a <= g1);
 
 const audioAt = (t: number): number => {
   if (t <= KNOTS[0][0]) return 0;
@@ -105,19 +112,20 @@ const chase = (): void => {
   if (target > lastTarget + 0.004) lastMove = now;
   lastTarget = target;
   const lag = target - el.currentTime;
-  // once the film is past the line, the last word always plays out instead of being cut
-  const stalled = target < AUDIO_END && now - lastMove > 140;
+  const tail = target >= AUDIO_END; // film is past the line: let it play out
+  // film stopped or went back: finish the phrase being spoken, then wait in the next pause
+  const holding = !tail && (now - lastMove > 260 || lag < -0.5);
   if (el.paused) {
-    if (lag > 0.06 && !stalled) {
-      el.playbackRate = (target >= AUDIO_END ? 1 : Math.min(1.9, Math.max(0.8, lag * 3)));
+    if (lag > 0.05 && !holding) {
+      el.playbackRate = 1;
       el.volume = 1;
       void el.play().catch(() => undefined);
     }
-  } else if (stalled || lag < -0.12) {
-    el.pause(); // the film stopped (or went back): so does the voice
+  } else if (holding && lag < 0 && inGap(el.currentTime)) {
+    el.pause();
   } else {
-    // proportional catch-up: steady scrolling settles at natural speed with a short lag
-    el.playbackRate = (target >= AUDIO_END ? 1 : Math.min(1.9, Math.max(0.8, lag * 3)));
+    // stays at his natural pace: only nudged 10% to drift back in step with the film
+    el.playbackRate = tail ? 1 : Math.min(1.1, Math.max(0.92, 1 + lag * 0.3));
   }
   raf = requestAnimationFrame(chase);
 };
@@ -159,7 +167,7 @@ export function unlockGreeting(): void {
 
 if (typeof window !== 'undefined' && !done) {
   // the events browsers accept as permission for sound (pointerdown is not one of them on touch)
-  for (const type of ['click', 'touchend', 'keydown'] as const) {
+  for (const type of ['click', 'mousedown', 'pointerup', 'touchend', 'keydown'] as const) {
     window.addEventListener(type, unlockGreeting, { capture: true, passive: true });
   }
 }
