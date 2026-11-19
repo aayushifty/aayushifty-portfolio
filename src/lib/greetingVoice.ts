@@ -5,8 +5,8 @@
  * Browsers only allow sound after the visitor has tapped, clicked or pressed a key once; scrolling
  * alone never counts. Without that, the greeting is simply skipped and the film runs silently.
  */
-const SRC = '/audio/greeting.m4a?v=20261119s1';
-const KEY = 'aayush-greeting-played';
+const SRC = '/audio/greeting.m4a?v=20261119s2';
+const KEY = 'aayush-greeting-heard';
 /** reel seconds: the voice may only start while the wave is on screen */
 const START_AT = 0.12;
 const LAST_CHANCE = 2.2;
@@ -14,8 +14,11 @@ const LAST_CHANCE = 2.2;
 const CUT_OFF = 9;
 
 let audio: HTMLAudioElement | null = null;
-let primed = false;
+let unlocked = false;
 let started = false;
+/** reel time of the last painted frame */
+let lastT = 0;
+/** true only once the line has actually been heard; then it never plays again this visit */
 let done = (() => {
   try {
     return sessionStorage.getItem(KEY) === '1';
@@ -42,23 +45,51 @@ const element = (): HTMLAudioElement => {
   return audio;
 };
 
-/** Call from a real tap/click/key handler: unlocks the element (iOS needs a play() inside a gesture). */
-export function primeGreeting(): void {
-  if (done || primed || started) return;
-  primed = true;
+const inWindow = (t: number): boolean => t >= START_AT && t <= LAST_CHANCE;
+
+/** Start the line now. Must run inside a tap/click/key handler or after one has unlocked sound. */
+const start = (): void => {
+  if (done || started) return;
+  const el = element();
+  started = true;
+  el.muted = false;
+  el.volume = 1;
+  el.currentTime = 0;
+  el.play().catch(() => {
+    started = false; // still not allowed; a later tap can start it
+  });
+};
+
+/** The opening cue was tapped: play right away inside the tap (iOS refuses sound started later). */
+export function playGreetingNow(): void {
+  unlocked = true;
+  start();
+}
+
+/** Any tap/click/key unlocks sound. iOS needs a play() inside that gesture, so the element is
+ *  primed silently; if the wave is already on screen, the line simply starts now instead. */
+const onGesture = (): void => {
+  if (done || started) return;
+  if (inWindow(lastT)) {
+    playGreetingNow();
+    return;
+  }
+  if (unlocked) return;
+  unlocked = true;
   const el = element();
   el.muted = true;
   el.play()
     .then(() => {
-      if (started) return; // the real start already took over
+      if (started) return;
       el.pause();
       el.currentTime = 0;
       el.muted = false;
     })
     .catch(() => {
       el.muted = false;
+      unlocked = false;
     });
-}
+};
 
 const fadeOut = (el: HTMLAudioElement): void => {
   const from = el.volume;
@@ -74,6 +105,7 @@ const fadeOut = (el: HTMLAudioElement): void => {
 
 /** Called with the reel time of every painted frame. */
 export function greetingTick(t: number): void {
+  lastT = t;
   if (done) return;
   if (started) {
     if (t > CUT_OFF && audio && !audio.paused) {
@@ -82,29 +114,14 @@ export function greetingTick(t: number): void {
     }
     return;
   }
-  if (t < START_AT) return;
-  if (t > LAST_CHANCE) {
-    finish(); // the moment has passed: it never plays later in the film
-    return;
-  }
+  if (!inWindow(t)) return; // not heard yet: it waits for the next pass through the wave
   const active = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation;
-  if (!primed && !(active?.hasBeenActive ?? false)) return;
-  const el = element();
-  started = true;
-  el.muted = false;
-  el.volume = 1;
-  el.currentTime = 0;
-  el.play().catch(() => {
-    started = false; // not allowed yet; may still start while the wave is on screen
-  });
+  if (unlocked || active?.hasBeenActive) start();
 }
 
 if (typeof window !== 'undefined' && !done) {
-  const onGesture = (): void => {
-    primeGreeting();
-    window.removeEventListener('pointerdown', onGesture, true);
-    window.removeEventListener('keydown', onGesture, true);
-  };
-  window.addEventListener('pointerdown', onGesture, { capture: true, passive: true });
-  window.addEventListener('keydown', onGesture, { capture: true });
+  // the events browsers accept as permission for sound (pointerdown is not one of them on touch)
+  for (const type of ['click', 'touchend', 'keydown'] as const) {
+    window.addEventListener(type, onGesture, { capture: true, passive: true });
+  }
 }

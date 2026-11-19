@@ -7,6 +7,7 @@ import { CinemaHUD } from '@/components/CinemaHUD';
 import { GestureStage } from '@/components/GestureStage';
 import { DossierDialog, DossierSelection } from '@/components/DossierDialog';
 import { CursorFX } from '@/components/CursorFX';
+import { playGreetingNow } from '@/lib/greetingVoice';
 
 export default function App(): React.ReactElement {
   const [activeAct, setActiveAct] = useState<0 | 1 | 2>(0);
@@ -162,6 +163,7 @@ export default function App(): React.ReactElement {
   // Tap on the opening cue: the tap itself unlocks sound, then the film rolls gently into the
   // greeting so the voice and the wave start together.
   const handleBegin = useCallback(() => {
+    playGreetingNow();
     const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     const targetY = Math.round((2.7 / VIDEO_DURATION_SECONDS) * maxScroll);
     if (lenisRef.current) lenisRef.current.scrollTo(targetY, { duration: 2.6, easing: (t) => 1 - Math.pow(1 - t, 3) });
